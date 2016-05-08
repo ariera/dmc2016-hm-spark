@@ -30,11 +30,29 @@ val customSchema = StructType(
 val df = sqlContext.read .format("com.databricks.spark.csv") .option("header", "true") .option("delimiter", ";") .schema(customSchema) .load("dm2_train_sample.csv")
 
 
-val orderToNumeric = df.select("orderid").distinct.map(row => row.getString(0)).zipWithIndex.collect.toMap
-
-val categoricalFeaturesInfo = Map[Int, Int](0 -> orderToNumeric.size)
-
-val dataSet = df.map(row =>
-        val numericOrderid = orderToNumeric(row.get(0))
+val l = List("orderid", "articleid", "colorcode", "sizecode",
+    "productgroup", "voucherid", "customerid", "deviceid", "paymentmethod",
+    "id", "orderdate"
     )
+
+val df2= df.select("orderid", "articleid", "colorcode", "sizecode",
+    "productgroup", "voucherid", "customerid", "deviceid", "paymentmethod",
+    "id", "orderdate"
+    )
+
+val i = 0;
+val categoricalFeaturesInfo = Map[Int, Int]
+
+l.foreach(
+    val mapToNumeric = df2.select(_).distinct.map(row => row.getString(i)).zipWithIndex.collect.toMap
+
+    catagoricalFeaturesInfo(i -> mapToNumeric.size)
+
+    val dataSet = df.map(row =>
+        val numericOrderid = mapToNumeric(row.get(i))
+    )
+    i = i + 1;
+    )
+
+
 
