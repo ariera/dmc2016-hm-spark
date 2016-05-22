@@ -3,13 +3,11 @@ import org.apache.spark.mllib.tree.RandomForest
 import org.apache.spark.mllib.tree.model.RandomForestModel
 import org.apache.spark.mllib.util.MLUtils
 
+val labeledKnownTr = MLUtils.loadLibSVMFile(sc, "labeledKnownTr")
 
-val labeledKnownTr = MLUtils.loadLibSVMFile(sc, "labeledKnownTr10")
-
-val labeledKnownTe = MLUtils.loadLibSVMFile(sc, "labeledKnownTe10")
+val labeledKnownTe = MLUtils.loadLibSVMFile(sc, "labeledKnownTe")
 
 //Key starts at 0 (). Value represents no of different features
-//Will work with a proper encoding
 val knownCategoricalFeaturesInfo = Map[Int, Int](
     // //1 -> 267, 
     // //2 -> 492, 
@@ -28,7 +26,7 @@ val knownCategoricalFeaturesInfo = Map[Int, Int](
     // 34 -> 5, 
     // 35 -> 8
     )
-    val numClasses = 2
+    val numClasses = 6
     val numTrees = 500
     val featureSubsetStrategy = "sqrt" 
     val impurity = "gini"
@@ -38,8 +36,6 @@ val knownCategoricalFeaturesInfo = Map[Int, Int](
 val model = RandomForest.trainClassifier(labeledKnownTr, numClasses, knownCategoricalFeaturesInfo,
   numTrees, featureSubsetStrategy, impurity, maxDepth, maxBins)
 
-
-
 val labelAndPreds = labeledKnownTe.map { point =>
   val prediction = model.predict(point.features)
   (point.label, prediction)
@@ -47,7 +43,3 @@ val labelAndPreds = labeledKnownTe.map { point =>
 
 val testErr = labelAndPreds.filter(r => r._1 != r._2).count.toDouble / labeledKnownTe.count()
 println("Test Error = " + testErr)
-println("Learned classification forest model:\n" + model.toDebugString)
-
-
-val model = RandomForestModel.load(sc, "treeEnsambleModel")

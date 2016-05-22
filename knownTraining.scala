@@ -1,3 +1,6 @@
+//from bash in sparkfolder
+
+./bin/spark-shell --packages com.databricks:spark-csv_2.11:1.4.0 
 
 //Copy all this and paste:
 import org.apache.spark.sql.SQLContext
@@ -6,11 +9,8 @@ import org.apache.spark.mllib.regression.{LabeledPoint}
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.ml.feature.StringIndexer
+import org.apache.spark.ml.feature.ChiSqSelector
 
-object knownTraining {
-  //def main(args: Array[String]) {
-
-    def loadFile(val textFile){
       val knownCustTrainSchema = StructType(
      Array(
       StructField("colorcode" , StringType, true),
@@ -62,7 +62,7 @@ object knownTraining {
       StructField("id" , DoubleType, true)
       )
     )
-  val knownTrainLoad = sqlContext.read .format("com.databricks.spark.csv") .option("header", "true") .option("delimiter", ";") .schema(knownCustTrainSchema) .load("textFile")
+  val knownTrainLoad = sqlContext.read .format("com.databricks.spark.csv") .option("header", "true") .option("delimiter", ";") .schema(knownCustTrainSchema) .load("/home/axel/Skrivbord/allAttributes/all_features_splited_v3/dm2_train_and_test_v3/dm2_test_kwown_customers_v3.csv")
   // .select to get the same order of the attributes (this is done for all four datasets)
   val knownTrain = knownTrainLoad.select(
       "voucherid" , 
@@ -113,11 +113,8 @@ object knownTraining {
       "id" ,
       "returnquantity" 
       )
-  return knownTrain
-    }
-  
+    
 
-def indexer(val knownTrain){
   val voucheridIndexer = new StringIndexer().setInputCol("voucherid" ).setOutputCol("voucheridIndexed");
   val customeridIndexer = new StringIndexer().setInputCol("customerid").setOutputCol("customeridIndexed");
   val colorcodeIndexer = new StringIndexer().setInputCol("colorcode").setOutputCol("colorcodeIndexed");
@@ -163,130 +160,67 @@ def indexer(val knownTrain){
   val year_and_monthIndexed = year_and_monthIndexer.fit(colorsIndexed).transform(colorsIndexed)
   val orderdateIndexed = orderdateIndexer.fit(year_and_monthIndexed).transform(year_and_monthIndexed)
   val knownTrain2 = color_ral_groupIndexer.fit(orderdateIndexed).transform(orderdateIndexed)
-  return knownTrain2
-}
-  
 
-
-  //Creates Vector of every Row and outputs as "feature"
   val knownAssembler = new VectorAssembler().setInputCols(Array(
-      // "voucheridIndexed" , 
-      // "colorcodeIndexed" , 
-       // "deviceidIndexed" , 
-       // "day_in_monthIndexed" , 
-       // "month_of_yearIndexed" , 
-       // "day_of_weekIndexed" , 
-       // "quarterIndexed" , 
-       // "paymentmethodIndexed" , 
-       // "has_voucherIndexed" , 
-      // "NewProductGroupIndexed" , 
-      // "NewSizeCodeIndexed" , 
-      // "new_paymentmethodIndexed" , 
-      // "sizecodeIndexed" , 
-      // "orderidIndexed" , 
-      //"articleidIndexed" , 
-      // "productgroupIndexed" , 
-       //"sizesIndexed" , 
-       //"colorsIndexed" , 
-      // "year_and_monthIndexed" , 
-      // "orderdateIndexed" , 
+        "voucheridIndexed" , 
+        "colorcodeIndexed" , 
+        "deviceidIndexed" , 
+        "day_in_monthIndexed" , 
+        "month_of_yearIndexed" , 
+        "day_of_weekIndexed" , 
+        "quarterIndexed" , 
+        "paymentmethodIndexed" , 
+        "has_voucherIndexed" , 
+        "NewProductGroupIndexed" , 
+        "NewSizeCodeIndexed" , 
+        "new_paymentmethodIndexed" , 
+        "sizecodeIndexed" , 
+        "orderidIndexed" , 
+        "articleidIndexed" , 
+        "productgroupIndexed" , 
+        "sizesIndexed" , 
+        "colorsIndexed" , 
+        "year_and_monthIndexed",
+        "orderdateIndexed" , 
         "quantity" , 
         "price" , 
         "rrp" , 
-      // "voucheramount" , 
-        "price_per_item" , 
-      // "price_to_rrp_ratio" , 
+        "voucheramount" , 
+        "price_per_item" ,
+        "price_to_rrp_ratio" , 
         "usual_price_ratio" , 
-      // "color_ral_groupIndexed" , 
+        "color_ral_groupIndexed" , 
         "article_average_price" , 
-      // "article_cheapest_price" , 
+        "article_cheapest_price" , 
         "article_most_expensive_price" , 
-      // "article_number_of_different_prices" , 
-        "total_order_price" , 
-      // "different_sizes" , 
-      // "different_colors"  ,
-      // "customeridIndexde" , 
+        "article_number_of_different_prices" , 
+        "total_order_price" ,
+        "different_sizes" , 
+        "different_colors"  ,
+        "customeridIndexed" , 
         "color_returned_times" , 
         "color_bought_times" , 
         "color_returned_ratio" , 
         "size_returned_times" , 
         "size_bought_times" , 
         "size_returned_ratio" , 
-       // "customer_sum_quantities" , 
+        "customer_sum_quantities" , 
         "customer_sum_returns" , 
-        "customer_return_ratio" ,
+        "customer_return_ratio", 
         "id"
       )
   ).setOutputCol("features")
 
-  val knownAssembler = new VectorAssembler().setInputCols(Array(
-      "voucheridIndexed" , 
-      "colorcodeIndexed" , 
-      "deviceidIndexed" , 
-      "day_in_monthIndexed" , 
-      "month_of_yearIndexed" , 
-      "day_of_weekIndexed" , 
-      "quarterIndexed" , 
-      "paymentmethodIndexed" , 
-      "has_voucherIndexed" , 
-      "NewProductGroupIndexed" , 
-      "NewSizeCodeIndexed" , 
-      "new_paymentmethodIndexed" , 
-      "sizecodeIndexed" , 
-      //"orderidIndexed" , 
-      //"articleidIndexed" , 
-      "productgroupIndexed" , 
-       //"sizesIndexed" , 
-       //"colorsIndexed" , 
-      "year_and_monthIndexed",
-      "orderdateIndexed" , 
-       "quantity" , 
-       "price" , 
-       // "rrp" , 
-       "voucheramount" , 
-       // "price_per_item" ,
-      "price_to_rrp_ratio" , 
-       "usual_price_ratio" , 
-      "color_ral_groupIndexed" , 
-      // "article_average_price" , 
-      "article_cheapest_price" , 
-       "article_most_expensive_price" , 
-      "article_number_of_different_prices" , 
-      "total_order_price" ,
-      "different_sizes" , 
-      "different_colors"  ,
-      // "customeridIndexed" , 
-       // "color_returned_times" , 
-       // "color_bought_times" , 
-       "color_returned_ratio" , 
-       // "size_returned_times" , 
-       // "size_bought_times" , 
-       "size_returned_ratio" , 
-       // "customer_sum_quantities" , 
-       // "customer_sum_returns" , 
-       "customer_return_ratio" 
-       // "id"
-      )
-  ).setOutputCol("features")
-
-
   val knownTr = knownAssembler.transform(knownTrain2).select("features", "returnquantity")
 
-  import org.apache.spark.ml.feature.ChiSqSelector
-  import org.apache.spark.mllib.linalg.Vectors
 
-  val selector = new ChiSqSelector().setNumTopFeatures(10).setFeaturesCol("features").setLabelCol("returnquantity").setOutputCol("selectedFeatures")
+  val selector = new ChiSqSelector().setNumTopFeatures(6).setFeaturesCol("features").setLabelCol("returnquantity").setOutputCol("selectedFeatures")
 
+  //Returns list of selected features by ChiSq
   val list = selector.fit(knownTr).selectedFeatures
 
   val chiSQselected = selector.fit(knownTr).transform(knownTr)
 
   val labeledKnownTr = chiSQselected.map(row => LabeledPoint(row.getDouble(1), row(2).asInstanceOf[Vector]))
 
-
-
-
-  val labeledKnownTr = knownAssembler.map(row => LabeledPoint(row.getDouble(1), row(0).asInstanceOf[Vector]))
-
-  //}
-}
+  labeledKnownTe.saveAsTextFile(sc, "labeledKnownTr")
